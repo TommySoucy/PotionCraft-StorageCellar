@@ -8,8 +8,9 @@ This custom room is below the garden and to the right of the basement. Every day
 
 1. Download the latest BepinEx package corresponding to your operating system from [here](https://github.com/BepInEx/BepInEx/releases) and extract all files from the zip into your Potion Craft installation
 2. Run the game once for BepinEx to generate its file system
-3. Download latest from [releases](https://github.com/TommySoucy/PotionCraft-StorageCellar/releases)
-4. Put all files from the .zip of this mod into BepinEx/Plugins folder
+3. Download and install latest [Custom Rooms release](https://github.com/TommySoucy/PotionCraft-StorageCellar/releases) as defined [here](https://github.com/TommySoucy/PotionCraft-CustomRooms)
+4. Download latest of this mod from [releases](https://github.com/TommySoucy/PotionCraft-StorageCellar/releases)
+5. Put all contents from the .zip of this mod into BepinEx/Plugins folder
 
 ## Config
 

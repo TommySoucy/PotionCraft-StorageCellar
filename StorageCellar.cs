@@ -12,7 +12,7 @@ using UnityEngine.Rendering;
 using ObjectBased.UIElements.FloatingText;
 using TMPAtlasGenerationSystem;
 using Markers;
-using SaveLoadSystem;
+using SaveFileSystem;
 
 namespace StorageCellar
 {
@@ -34,8 +34,8 @@ namespace StorageCellar
         public static List<MineralGrowingSpot> mineralGrowSpots;
         public static List<Ingredient> minerals;
         public static bool showInteractive;
-        public static SaveSlotIndex currentSlotIndex;
-        public static bool saveSlotSpecified;
+        public static SavePool currentSavePool;
+        public static bool savePoolSpecified;
 
         public void Awake()
         {
@@ -55,17 +55,17 @@ namespace StorageCellar
         {
             var harmony = new HarmonyLib.Harmony("VIP.TommySoucy.StorageCellar");
 
-            // LoadFromSlotPatch
-            var loadFromSlotPatchOriginal = typeof(SaveLoadManager).GetMethod("LoadFromSlot");
-            var loadFromSlotPatchPrefix = typeof(LoadFromSlotPatch).GetMethod("Prefix", BindingFlags.NonPublic | BindingFlags.Static);
+            // LoadFromPoolPatch
+            var loadFromPoolPatchOriginal = typeof(SaveLoadManager).GetMethod("LoadLastProgressFromPool");
+            var loadFromPoolPatchPrefix = typeof(LoadFromPoolPatch).GetMethod("Prefix", BindingFlags.NonPublic | BindingFlags.Static);
 
-            harmony.Patch(loadFromSlotPatchOriginal, new HarmonyMethod(loadFromSlotPatchPrefix));
+            harmony.Patch(loadFromPoolPatchOriginal, new HarmonyMethod(loadFromPoolPatchPrefix));
 
             // SaveToSlotPatch
-            var saveToSlotPatchOriginal = typeof(SaveLoadManager).GetMethod("SaveToSlot");
-            var saveToSlotPatchPrefix = typeof(SaveToSlotPatch).GetMethod("Prefix", BindingFlags.NonPublic | BindingFlags.Static);
+            var saveToPoolPatchOriginal = typeof(SaveLoadManager).GetMethod("SaveProgressToPool");
+            var saveToPoolPatchPrefix = typeof(SaveToPoolPatch).GetMethod("Prefix", BindingFlags.NonPublic | BindingFlags.Static);
 
-            harmony.Patch(saveToSlotPatchOriginal, new HarmonyMethod(saveToSlotPatchPrefix));
+            harmony.Patch(saveToPoolPatchOriginal, new HarmonyMethod(saveToPoolPatchPrefix));
         }
 
         public void LogError(string error)
@@ -94,7 +94,7 @@ namespace StorageCellar
         {
             try
             {
-                string[] lines = File.ReadAllLines("BepinEx/Plugins/StorageCellar.txt");
+                string[] lines = System.IO.File.ReadAllLines("BepinEx/Plugins/Rooms/StorageCellar.txt");
 
                 foreach (string line in lines)
                 {
@@ -129,21 +129,21 @@ namespace StorageCellar
 
         private void OnProgressStateSave()
         {
-            if (saveSlotSpecified)
+            if (savePoolSpecified)
             {
-                saveSlotSpecified = false;
+                savePoolSpecified = false;
                 string[] lines = new string[mineralGrowSpots.Count];
                 for (int i = 0; i < mineralGrowSpots.Count; ++i)
                 {
                     lines[i] = mineralGrowSpots[i].spotMineral == null ? "null" : mineralGrowSpots[i].spotMineral.ingredient.name;
                 }
-                File.WriteAllLines("BepinEx/Plugins/Rooms/StorageCellar."+ currentSlotIndex + ".sav", lines);
+                System.IO.File.WriteAllLines("BepinEx/Plugins/Rooms/StorageCellar."+ currentSavePool + ".sav", lines);
             }
         }
 
         private void OnProgressStateLoad()
         {
-            if (saveSlotSpecified)
+            if (savePoolSpecified)
             {
                 foreach(MineralGrowingSpot growSpot in mineralGrowSpots)
                 {
@@ -154,7 +154,7 @@ namespace StorageCellar
                 }
                 try
                 {
-                    string[] lines = File.ReadAllLines("BepinEx/Plugins/Rooms/StorageCellar." + currentSlotIndex + ".sav");
+                    string[] lines = System.IO.File.ReadAllLines("BepinEx/Plugins/Rooms/StorageCellar." + currentSavePool + ".sav");
                     for(int i=0; i < lines.Length; ++i)
                     {
                         string line = lines[i].Trim();
@@ -319,21 +319,21 @@ namespace StorageCellar
         }
     }
 
-    class LoadFromSlotPatch
+    class LoadFromPoolPatch
     {
-        static void Prefix(SaveSlotIndex slot)
+        static void Prefix(SavePool pool)
         {
-            StorageCellarMod.currentSlotIndex = slot;
-            StorageCellarMod.saveSlotSpecified = true;
+            StorageCellarMod.currentSavePool = pool;
+            StorageCellarMod.savePoolSpecified = true;
         }
     }
 
-    class SaveToSlotPatch
+    class SaveToPoolPatch
     {
-        static void Prefix(SaveSlotIndex slot)
+        static void Prefix(SavePool pool)
         {
-            StorageCellarMod.currentSlotIndex = slot;
-            StorageCellarMod.saveSlotSpecified = true;
+            StorageCellarMod.currentSavePool = pool;
+            StorageCellarMod.savePoolSpecified = true;
         }
     }
 }
